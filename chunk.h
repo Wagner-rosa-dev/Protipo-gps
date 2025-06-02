@@ -8,6 +8,7 @@
 #include <QOpenGLExtraFunctions>
 #include <QMatrix4x4>
 #include <vector>
+#include <utility>
 
 struct Vertex {
     QVector3D position;
@@ -20,6 +21,19 @@ class chunk {
 public:
     chunk();
     ~chunk();
+
+    // ----- semantica de movimento e copia ------
+    //construtor de movimento
+    chunk(chunk&& other) noexcept;
+    //Operador de atribuição por movimento
+    chunk& operator=(chunk&& other) noexcept;
+
+    //Impedir copias(importante apra classes com rescursos opengl gerenciados)
+    chunk(const chunk& other) = delete;
+    chunk& operator=(const chunk& other) = delete;
+
+
+
 
     void init(int cX, int cZ, QOpenGLShaderProgram* terrainShaderProgram, QOpenGLExtraFunctions *glFuncs);
     void generateMesh(int resolution, QOpenGLShaderProgram* terrainShaderProgram, QOpenGLExtraFunctions *glFuncs);

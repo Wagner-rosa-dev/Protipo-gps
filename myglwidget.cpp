@@ -36,7 +36,7 @@ const char* terrainFragmentShaderSource = R"(
     in vec3 v_worldPos;
     in vec3 v_normal;
 
-    out vec3 FragColor;
+    out vec4 FragColor;
 
     uniform vec3 lightPos = vec3(50.0, 100.0, 50.0);
     uniform vec3 lightColor = vec3(1.0, 1.0, 1.0);
@@ -48,20 +48,20 @@ const char* terrainFragmentShaderSource = R"(
         float diff = max(dot(norm, lightDir), 0.0);
         vec3 diffuse = diff * lightColor;
         float ambientStrength = 0.2;
-        vec3 ambient = ambientStrenght * lightColor;
+        vec3 ambient = ambientStrength * lightColor;
         vec3 resultColor = (ambient + diffuse) * objectBaseColor;
-        float heightFacotr = calmp(v_worldPos.y / 20.0, 0.0, 1.0);
+        float heightFactor = clamp(v_worldPos.y / 20.0, 0.0, 1.0);
         resultColor = mix(resultColor, vec3(0.6, 0.5, 0.3), heightFacotr * 0.5);
         FragColor = vec4(resultColor, 1.0);
     }
 )";
 
 const char* lineVertexShaderSource = R"(
-    version 300 es
+    #version 300 es
 
     layout (location = 0) in vec3 a_position;
 
-    layout (std140) uniform Scenematrices {
+    layout (std140) uniform SceneMatrices {
         mat4 projectionMatrix;
         mat4 viewMatrix;
     };
@@ -70,7 +70,7 @@ const char* lineVertexShaderSource = R"(
 
     void main() {
         vec3 elevated_position = a_position + vec3(0.0, 0.1, 0.0);
-        gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(elevated_positionm 1,0);
+        gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(elevated_position, 1,0);
     }
 )";
 
@@ -140,6 +140,7 @@ void MyGLWidget::setupUBO() {
     m_sceneMatricesUBO.bind();
     m_sceneMatricesUBO.allocate(sizeof(SceneMatrices));
     m_sceneMatricesUBO.release();
+
     m_extraFunction->glBindBufferBase(GL_UNIFORM_BUFFER, m_uboBindingPointSceneMatrices, m_sceneMatricesUBO.bufferId());
 
     GLuint terrainBlockIndex = m_extraFunction->glGetUniformBlockIndex(m_terrainShaderProgram.programId(), "SceneMatrices");
