@@ -1,6 +1,8 @@
 #include "chunk.h"
 #include "noiseutils.h"
 #include <QDebug>
+#include <utility>
+
 
 chunk::chunk() :
     m_chunkGridX(0),
@@ -17,7 +19,7 @@ chunk::~chunk() {
 
 }
 
-chunk::chunk(chunk&& other) noexcept
+chunk::chunk(chunk&& other) noexcept(false)
     : m_chunkGridX(other.m_chunkGridX),
     m_chunkGridZ(other.m_chunkGridZ),
     m_vao(std::move(other.m_vao)),         // Transfere a propriedade do VAO
@@ -45,7 +47,7 @@ chunk::chunk(chunk&& other) noexcept
 }
 
 // Operador de Atribuição por Movimento
-chunk& chunk::operator=(chunk&& other) noexcept {
+chunk& chunk::operator=(chunk&& other) noexcept(false) {
     if (this != &other) { // Proteção contra auto-atribuição (ex: c = std::move(c);)
         // Liberar recursos existentes deste objeto (this)
         // Se m_vao, m_vbo, m_ebo estivessem ativos, seus destrutores seriam chamados
@@ -164,7 +166,7 @@ void chunk::generateMesh(int resolution, QOpenGLShaderProgram* terrainShaderProg
     m_vbo.bind();
     m_vbo.allocate(vertices.data(), m_vertexCount * sizeof(Vertex));
     m_ebo.create();
-    m_ebo.bind(QOpenGLBuffer::IndexBuffer);
+    m_ebo.bind();
     m_ebo.allocate(indices.data(), m_indexCount * sizeof(GLuint));
 
     terrainShaderProgram->enableAttributeArray(0);

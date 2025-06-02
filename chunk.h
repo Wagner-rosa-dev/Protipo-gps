@@ -24,9 +24,9 @@ public:
 
     // ----- semantica de movimento e copia ------
     //construtor de movimento
-    chunk(chunk&& other) noexcept;
+    chunk(chunk&& other) noexcept(false);
     //Operador de atribuição por movimento
-    chunk& operator=(chunk&& other) noexcept;
+    chunk& operator=(chunk&& other) noexcept(false);
 
     //Impedir copias(importante apra classes com rescursos opengl gerenciados)
     chunk(const chunk& other) = delete;

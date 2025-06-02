@@ -16,7 +16,7 @@ CC            = aarch64-tdx-linux-gcc -mcpu=cortex-a53 -march=armv8-a+crc -mbran
 CXX           = aarch64-tdx-linux-g++ -mcpu=cortex-a53 -march=armv8-a+crc -mbranch-protection=standard -fstack-protector-strong -O2 -D_FORTIFY_SOURCE=2 -Wformat -Wformat-security -Werror=format-security
 DEFINES       = -DQT_QML_DEBUG -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_CORE_LIB
 CFLAGS        = -pipe --sysroot=/home/wagner/Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux -g -Wall -Wextra -D_REENTRANT -fPIC $(DEFINES)
-CXXFLAGS      = -pipe --sysroot=/home/wagner/Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux -g -std=gnu++11 -Wall -Wextra -D_REENTRANT -fPIC $(DEFINES)
+CXXFLAGS      = -pipe --sysroot=/home/wagner/Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux -g -std=gnu++1z -Wall -Wextra -D_REENTRANT -fPIC $(DEFINES)
 INCPATH       = -I../../../Prototipo-gps -I. -I../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtWidgets -I../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtGui -I../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtCore -I. -I. -I../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/lib/mkspecs/linux-oe-g++
 QMAKE         = /home/wagner/Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/x86_64-tdxsdk-linux/usr/bin/qmake
 DEL_FILE      = rm -f
@@ -778,7 +778,7 @@ compiler_moc_predefs_make_all: moc_predefs.h
 compiler_moc_predefs_clean:
 	-$(DEL_FILE) moc_predefs.h
 moc_predefs.h: ../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/lib/mkspecs/features/data/dummy.cpp
-	aarch64-tdx-linux-g++ -mcpu=cortex-a53 -march=armv8-a+crc -mbranch-protection=standard -fstack-protector-strong -O2 -D_FORTIFY_SOURCE=2 -Wformat -Wformat-security -Werror=format-security -pipe --sysroot=/home/wagner/Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux -g -std=gnu++11 -Wall -Wextra -dM -E -o moc_predefs.h ../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/lib/mkspecs/features/data/dummy.cpp
+	aarch64-tdx-linux-g++ -mcpu=cortex-a53 -march=armv8-a+crc -mbranch-protection=standard -fstack-protector-strong -O2 -D_FORTIFY_SOURCE=2 -Wformat -Wformat-security -Werror=format-security -pipe --sysroot=/home/wagner/Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux -g -std=gnu++1z -Wall -Wextra -dM -E -o moc_predefs.h ../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/lib/mkspecs/features/data/dummy.cpp
 
 compiler_moc_header_make_all: moc_myglwidget.cpp
 compiler_moc_header_clean:
