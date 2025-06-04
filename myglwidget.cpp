@@ -51,7 +51,7 @@ const char* terrainFragmentShaderSource = R"(
         vec3 ambient = ambientStrength * lightColor;
         vec3 resultColor = (ambient + diffuse) * objectBaseColor;
         float heightFactor = clamp(v_worldPos.y / 20.0, 0.0, 1.0);
-        resultColor = mix(resultColor, vec3(0.6, 0.5, 0.3), heightFacotr * 0.5);
+        resultColor = mix(resultColor, vec3(0.6, 0.5, 0.3), heightFactor * 0.5);
         FragColor = vec4(resultColor, 1.0);
     }
 )";
@@ -70,7 +70,7 @@ const char* lineVertexShaderSource = R"(
 
     void main() {
         vec3 elevated_position = a_position + vec3(0.0, 0.1, 0.0);
-        gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(elevated_position, 1,0);
+        gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(elevated_position, 1.0);
     }
 )";
 
@@ -80,7 +80,7 @@ const char* lineFragmentShaderSource = R"(
     precision mediump float;
     //se nao der certo mudar para highp
 
-    outr vec4 FragColor;
+    out vec4 FragColor;
 
     void main() {
         FragColor = vec4(0.5, 0.5, 0.5, 1.0); //Cor cinza

@@ -1,7 +1,7 @@
 #include "chunk.h"
 #include "noiseutils.h"
 #include <QDebug>
-#include <utility>
+
 
 
 chunk::chunk() :
@@ -19,12 +19,12 @@ chunk::~chunk() {
 
 }
 
-chunk::chunk(chunk&& other) noexcept(false)
+chunk::chunk(chunk&& other) noexcept(true)
     : m_chunkGridX(other.m_chunkGridX),
     m_chunkGridZ(other.m_chunkGridZ),
-    m_vao(std::move(other.m_vao)),         // Transfere a propriedade do VAO
-    m_vbo(std::move(other.m_vbo)),         // Transfere a propriedade do VBO
-    m_ebo(std::move(other.m_ebo)),         // Transfere a propriedade do EBO
+    m_vao(std::move(other.m_vao)),         // Move a propriedade do unique_ptr
+    m_vbo(std::move(other.m_vbo)),         // Move a propriedade do unique_ptr
+    m_ebo(std::move(other.m_ebo)),         // Move a propriedade do unique_ptr
     m_indexCount(other.m_indexCount),
     m_vertexCount(other.m_vertexCount),
     m_modelMatrix(std::move(other.m_modelMatrix)), // QMatrix4x4 também suporta movimento
@@ -47,15 +47,15 @@ chunk::chunk(chunk&& other) noexcept(false)
 }
 
 // Operador de Atribuição por Movimento
-chunk& chunk::operator=(chunk&& other) noexcept(false) {
+chunk& chunk::operator=(chunk&& other) noexcept(true) {
     if (this != &other) { // Proteção contra auto-atribuição (ex: c = std::move(c);)
         // Liberar recursos existentes deste objeto (this)
         // Se m_vao, m_vbo, m_ebo estivessem ativos, seus destrutores seriam chamados
         // quando são sobrescritos pelas operações de movimento abaixo.
         // Se você quiser ser explícito sobre a liberação antes da atribuição:
-        // if (m_vao.isCreated()) m_vao.destroy();
-        // if (m_vbo.isCreated()) m_vbo.destroy();
-        // if (m_ebo.isCreated()) m_ebo.destroy();
+        //if (m_vao.isCreated()) m_vao.destroy();
+        //if (m_vbo.isCreated()) m_vbo.destroy();
+        //if (m_ebo.isCreated()) m_ebo.destroy();
 
         // Mover os dados de 'other' para 'this'
         m_chunkGridX = other.m_chunkGridX;
@@ -89,27 +89,28 @@ void chunk::init(int cX, int cZ, QOpenGLShaderProgram* terrainShaderProgram, QOp
     float worldZ = static_cast<float>(m_chunkGridZ * CHUNK_SIZE);
     m_modelMatrix.setToIdentity();
     m_modelMatrix.translate(worldX, 0.0f, worldZ);
-    setLOD(0);
+    setLOD(0); //Define o LOD inicial, que definira o m_currentResolution
     generateMesh(m_currentResolution, terrainShaderProgram, glFuncs);
 }
 
 void chunk::generateMesh(int resolution, QOpenGLShaderProgram* terrainShaderProgram, QOpenGLExtraFunctions *glFuncs) {
+    //Limpa os buffers antigos antes de criar uma nova malha
+    m_vao.reset();
+    m_vbo.reset();
+    m_ebo.reset();
+    m_indexCount = 0;
+    m_vertexCount = 0;
+
     if (resolution <= 1) {
-        qWarning() << "Chunk resolution too low or invalid:" << resolution;
-        m_indexCount = 0;
-        m_vertexCount = 0;
-        //Certifique=se de que od buffers antigos sejam destruidos de existirem
-        if (m_vao.isCreated()) m_vao.destroy();
-        if (m_vbo.isCreated()) m_vbo.destroy();
-        if (m_ebo.isCreated()) m_ebo.destroy();
+        qWarning() << "Chunk resolution too low or invalid:" << resolution << "for chunk (" << m_chunkGridX << "," << m_chunkGridZ << ")";
         return;
     }
     m_currentResolution = resolution;
 
     std::vector<Vertex> vertices;
-    vertices.reserve(resolution * resolution);
+    vertices.reserve(static_cast<size_t>(resolution) * static_cast<size_t>(resolution));
     std::vector<GLuint> indices;
-    indices.reserve((resolution - 1) * (resolution - 1) * 6);
+    indices.reserve(static_cast<size_t>(resolution - 1) * static_cast<size_t>(resolution - 1) * 6);
     float step = static_cast<float>(CHUNK_SIZE) / (resolution - 1);
 
     for (int r = 0; r < resolution; ++r) {
@@ -117,8 +118,8 @@ void chunk::generateMesh(int resolution, QOpenGLShaderProgram* terrainShaderProg
             Vertex v;
             float localX = c * step;
             float localZ = r * step;
-            float noise_coord_x = (m_chunkGridX * CHUNK_SIZE) + localX;
-            float noise_coord_z = (m_chunkGridZ * CHUNK_SIZE) + localZ;
+            float noise_coord_x = (static_cast<float>(m_chunkGridX * CHUNK_SIZE)) + localX;
+            float noise_coord_z = (static_cast<float>(m_chunkGridZ * CHUNK_SIZE)) + localZ;
             v.position = QVector3D(localX, NoiseUtils::getHeight(noise_coord_x, noise_coord_z), localZ);
             float offset_norm = 0.1f;
             float hL = NoiseUtils::getHeight(noise_coord_x - offset_norm, noise_coord_z);
@@ -132,9 +133,9 @@ void chunk::generateMesh(int resolution, QOpenGLShaderProgram* terrainShaderProg
 
     for (int r = 0; r < resolution - 1; ++r) {
         for (int c = 0; c < resolution - 1; ++c) {
-            GLuint topLeft = r * resolution + c;
+            GLuint topLeft = static_cast<GLuint>(r * resolution + c);
             GLuint topRight = topLeft + 1;
-            GLuint bottomLeft = (r + 1) * resolution + c;
+            GLuint bottomLeft = static_cast<GLuint>((r + 1) * resolution + c);
             GLuint bottomRight = bottomLeft + 1;
             indices.push_back(topLeft);
             indices.push_back(bottomLeft);
@@ -147,27 +148,43 @@ void chunk::generateMesh(int resolution, QOpenGLShaderProgram* terrainShaderProg
 
     m_indexCount = static_cast<int>(indices.size());
     m_vertexCount = static_cast<int>(vertices.size());
+
     if (m_indexCount == 0 || m_vertexCount == 0) {
         qWarning() << "Generated mesh os empty for chunk (" << m_chunkGridX << "," << m_chunkGridZ << ") with resolution" << resolution;
-
-        if (m_vao.isCreated()) m_vao.destroy();
-        if (m_vbo.isCreated()) m_vbo.destroy();
-        if (m_ebo.isCreated()) m_ebo.destroy();
         return;
     }
 
-    if (m_vao.isCreated()) m_vao.destroy();
-    if (m_vbo.isCreated()) m_vbo.destroy();
-    if (m_ebo.isCreated()) m_ebo.destroy();
+    //Criação e configuração dos buffers
+    m_vao = std::make_unique<QOpenGLVertexArrayObject>();
+    if (!m_vao->create()) {
+        qWarning() << "Falied to create VAO for chunk (" << m_chunkGridX << "," << m_chunkGridZ << ")";
+        m_vao.reset(); //Garante que o m_vao é nullptr se a criação falhar
+        return;
+    }
 
-    m_vao.create();
-    m_vao.bind();
-    m_vbo.create();
-    m_vbo.bind();
-    m_vbo.allocate(vertices.data(), m_vertexCount * sizeof(Vertex));
-    m_ebo.create();
-    m_ebo.bind();
-    m_ebo.allocate(indices.data(), m_indexCount * sizeof(GLuint));
+    m_vao->bind();
+
+    m_vbo = std::make_unique<QOpenGLBuffer>(QOpenGLBuffer::VertexBuffer);
+    if(!m_vbo->create()) {
+        qWarning() << "Failed to create VBO for chunk (" << m_chunkGridX << "," << m_chunkGridZ << "0";
+        m_vao->release(); m_vao.reset(); //Limpa o VAO
+        m_vbo.reset();
+        return;
+    }
+
+    m_vbo->bind();
+    m_vbo->allocate(vertices.data(), m_vertexCount * sizeof(Vertex));
+
+    m_ebo = std::make_unique<QOpenGLBuffer>(QOpenGLBuffer::IndexBuffer);
+    if (!m_ebo->create()) {
+        qWarning() << "Failed to create EBO for chunk (" << m_chunkGridX << "," << m_chunkGridZ << ")";
+        m_vao->release(); m_vao.reset(); //Limpa o VAO
+        m_vbo.reset();
+        m_ebo.reset();
+        return;
+    }
+    m_ebo->bind();
+    m_ebo->allocate(indices.data(), m_indexCount * sizeof(GLuint));
 
     terrainShaderProgram->enableAttributeArray(0);
     terrainShaderProgram->setAttributeBuffer(0, GL_FLOAT, offsetof(Vertex, position), 3, sizeof(Vertex));
@@ -176,7 +193,7 @@ void chunk::generateMesh(int resolution, QOpenGLShaderProgram* terrainShaderProg
 
     m_vao.release();
     //m_vbo.release();
-    m_ebo.release(QOpenGLBuffer::IndexBuffer);
+    if (m_ebo) {m_ebo->release(QOpenGLBuffer::IndexBuffer);}
 }
 
 
@@ -190,15 +207,15 @@ void chunk::setLOD(int lodLevel) {
 }
 
 QVector3D chunk::getCenterPosition() const {
-    float worldX = (m_chunkGridX + 0.5f) * CHUNK_SIZE;
-    float worldZ = (m_chunkGridZ + 0.5f) * CHUNK_SIZE;
+    float worldX = (static_cast<float>(m_chunkGridX) + 0.5f) * CHUNK_SIZE;
+    float worldZ = (static_cast<float>(m_chunkGridZ) + 0.5f) * CHUNK_SIZE;
     return QVector3D(worldX, NoiseUtils::getHeight(worldX, worldZ), worldZ);
 }
 
 void chunk::render(QOpenGLShaderProgram* terrainShaderProgram, QOpenGLExtraFunctions *glFuncs) {
-    if (m_indexCount == 0 || !m_vao.isCreated()) return;
+    if (m_indexCount == 0 || !m_vao || !m_vao->isCreated()) { return; }
     terrainShaderProgram->setUniformValue("modelMatrix", m_modelMatrix);
-    m_vao.bind();
+    m_vao->bind();
     glFuncs->glDrawElements(GL_TRIANGLES, m_indexCount, GL_UNSIGNED_INT, nullptr);
     m_vao.release();
 }

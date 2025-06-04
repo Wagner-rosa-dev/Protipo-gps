@@ -9,6 +9,7 @@
 #include <QMatrix4x4>
 #include <vector>
 #include <utility>
+#include <memory>
 
 struct Vertex {
     QVector3D position;
@@ -24,9 +25,9 @@ public:
 
     // ----- semantica de movimento e copia ------
     //construtor de movimento
-    chunk(chunk&& other) noexcept(false);
+    chunk(chunk&& other) noexcept(true);
     //Operador de atribuição por movimento
-    chunk& operator=(chunk&& other) noexcept(false);
+    chunk& operator=(chunk&& other) noexcept(true);
 
     //Impedir copias(importante apra classes com rescursos opengl gerenciados)
     chunk(const chunk& other) = delete;
@@ -49,9 +50,9 @@ private:
     int m_chunkGridX;
     int m_chunkGridZ;
 
-    QOpenGLVertexArrayObject m_vao;
-    QOpenGLBuffer m_vbo;
-    QOpenGLBuffer m_ebo;
+    std::unique_ptr<QOpenGLVertexArrayObject> m_vao;
+    std::unique_ptr<QOpenGLBuffer> m_vbo;
+    std::unique_ptr<QOpenGLBuffer> m_ebo;
     int m_indexCount;
     int m_vertexCount;
 
