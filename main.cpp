@@ -7,18 +7,20 @@ int main(int argc, char *argv[])
     QApplication a(argc, argv);
 
     QSurfaceFormat format;
+    format.setRenderableType(QSurfaceFormat::OpenGLES);
+    format.setVersion(3, 0);
     format.setDepthBufferSize(24);
     format.setStencilBufferSize(8);
 
-#ifdef QT_OPENGL_ES_3
-    format.setRenderableType(QSurfaceFormat::OpenGLES);
-    format.setVersion(3, 0);// OpenGL ES 3.0
-#else
-    format.setRenderableType(QSurfaceFormat::OpenGLES);
-    format.setProfile(QSurfaceFormat::CoreProfile);
-    format.setVersion(3, 3); // OpenGL 3.3 Core (minimo para UBOSs de forma robusta)
-#endif
+
     QSurfaceFormat::setDefaultFormat(format);
+
+    qInfo() << "Configurando QSurfaceFomat para OPENGL ES" << format.majorVersion() << "." << format.minorVersion();
+    if (format.renderableType() == QSurfaceFormat::OpenGLES) {
+        qInfo() << "Tipo de renderização OpenGLES";
+    } else {
+        qWarning() << "Tipo de renderização NÂO é OpenGLE. Verifique a Configurção";
+    }
 
     MyGLWidget w;
     w.resize(800, 600);

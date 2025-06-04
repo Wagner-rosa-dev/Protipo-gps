@@ -111,15 +111,19 @@ void MyGLWidget::initializeGL() {
     // Compilar Shaders a partir do código fonte embutido
     if (!m_terrainShaderProgram.addShaderFromSourceCode(QOpenGLShader::Vertex, terrainVertexShaderSource))
         qWarning() << "Terrain Vertex Shader Error:" << m_terrainShaderProgram.log();
+
     if (!m_terrainShaderProgram.addShaderFromSourceCode(QOpenGLShader::Fragment, terrainFragmentShaderSource))
         qWarning() << "Terrain Fragment Shader Error:" << m_terrainShaderProgram.log();
+
     if (!m_terrainShaderProgram.link())
         qWarning() << "Terrain Shader Linker Error:" << m_terrainShaderProgram.log();
 
     if (!m_lineShaderProgram.addShaderFromSourceCode(QOpenGLShader::Vertex, lineVertexShaderSource))
         qWarning() << "Line Vertex Shader Error:" << m_lineShaderProgram.log();
+
     if (!m_lineShaderProgram.addShaderFromSourceCode(QOpenGLShader::Fragment, lineFragmentShaderSource))
         qWarning() << "Line Fragment Shader Error:" << m_lineShaderProgram.log();
+
     if (!m_lineShaderProgram.link())
         qWarning() << "Line Shader Linker Error:" << m_lineShaderProgram.log();
 
