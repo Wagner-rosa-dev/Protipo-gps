@@ -4,7 +4,7 @@
 terrainmanager::terrainmanager() : m_gridSize(0), m_lineQuadVaoRef(nullptr), m_lineQuadVboRef(nullptr)
 {}
 
-void terrainmanager::init(int gridSize, QOpenGLShaderProgram* terrainShaderProgram, QOpenGLShaderProgram* lineShaderProgram, QOpenGLVertexArrayObject* lineQuadVao, QOpenGLBuffer* lineQuadVbo, QOpenGLExtraFunctions *glFuncs) {
+void terrainmanager::init(int gridSize, QOpenGLShaderProgram* terrainShaderProgram, QOpenGLShaderProgram* lineShaderProgram, QOpenGLVertexArrayObject* lineQuadVao, QOpenGLBuffer* lineQuadVbo, QOpenGLFunctions *glFuncs) {
     m_gridSize = gridSize;
     m_chunks.resize(m_gridSize);
     m_lineQuadVaoRef = lineQuadVao;
@@ -20,7 +20,7 @@ void terrainmanager::init(int gridSize, QOpenGLShaderProgram* terrainShaderProgr
     }
 }
 
-void terrainmanager::update(const QVector3D& cameraPos, QOpenGLShaderProgram* terrainShaderProgram, QOpenGLExtraFunctions *glFuncs) {
+void terrainmanager::update(const QVector3D& cameraPos, QOpenGLShaderProgram* terrainShaderProgram, QOpenGLFunctions *glFuncs) {
     for (int i = 0; i < m_gridSize; ++i) {
         for (int j = 0; j < m_gridSize; ++j) {
             chunk& chunk = m_chunks[i][j];
@@ -39,7 +39,7 @@ void terrainmanager::update(const QVector3D& cameraPos, QOpenGLShaderProgram* te
     }
 }
 
-void terrainmanager::render(QOpenGLShaderProgram* terrainShaderProgram, QOpenGLShaderProgram* lineShaderProgram, QOpenGLExtraFunctions *glFuncs) {
+void terrainmanager::render(QOpenGLShaderProgram* terrainShaderProgram, QOpenGLShaderProgram* lineShaderProgram, QOpenGLFunctions *glFuncs) {
 
     for (int i = 0; i < m_gridSize; ++i) {
         for (int j = 0; j < m_gridSize; ++j) {

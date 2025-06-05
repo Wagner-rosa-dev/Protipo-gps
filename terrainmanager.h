@@ -11,9 +11,9 @@ class terrainmanager{
 public:
     terrainmanager();
 
-    void init(int gridSize, QOpenGLShaderProgram* terrainShaderProgram, QOpenGLShaderProgram* lineShaderProgram, QOpenGLVertexArrayObject* lineQuadVao, QOpenGLBuffer* lineQuadVbo, QOpenGLExtraFunctions *glFuncs);
-    void update(const QVector3D& cameraPos, QOpenGLShaderProgram* terrainShaderProgram, QOpenGLExtraFunctions *glFuncs);
-    void render(QOpenGLShaderProgram* terrainShaderProgram, QOpenGLShaderProgram* lineShaderProgram, QOpenGLExtraFunctions *glFuncs);
+    void init(int gridSize, QOpenGLShaderProgram* terrainShaderProgram, QOpenGLShaderProgram* lineShaderProgram, QOpenGLVertexArrayObject* lineQuadVao, QOpenGLBuffer* lineQuadVbo, QOpenGLFunctions *glFuncs);
+    void update(const QVector3D& cameraPos, QOpenGLShaderProgram* terrainShaderProgram, QOpenGLFunctions *glFuncs);
+    void render(QOpenGLShaderProgram* terrainShaderProgram, QOpenGLShaderProgram* lineShaderProgram, QOpenGLFunctions *glFuncs);
 
 private:
     std::vector<std::vector<chunk>> m_chunks;

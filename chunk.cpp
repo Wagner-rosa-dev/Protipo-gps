@@ -82,7 +82,7 @@ chunk& chunk::operator=(chunk&& other) noexcept(true) {
     return *this;
 }
 
-void chunk::init(int cX, int cZ, QOpenGLShaderProgram* terrainShaderProgram, QOpenGLExtraFunctions *glFuncs) {
+void chunk::init(int cX, int cZ, QOpenGLShaderProgram* terrainShaderProgram, QOpenGLFunctions *glFuncs) {
     m_chunkGridX = cX;
     m_chunkGridZ = cZ;
     float worldX = static_cast<float>(m_chunkGridX * CHUNK_SIZE);
@@ -93,14 +93,19 @@ void chunk::init(int cX, int cZ, QOpenGLShaderProgram* terrainShaderProgram, QOp
     generateMesh(m_currentResolution, terrainShaderProgram, glFuncs);
 }
 
-void chunk::generateMesh(int resolution, QOpenGLShaderProgram* terrainShaderProgram, QOpenGLExtraFunctions *glFuncs) {
-    // 1. GERAÇÃO DOS DADOS (como antes)
-    m_vao.reset();
-    m_vbo.reset();
-    m_ebo.reset();
+void chunk::generateMesh(int resolution, QOpenGLShaderProgram* terrainShaderProgram, QOpenGLFunctions *glFuncs) {
+    if(!glFuncs) {
+        qWarning() << "generateMesh called with null QOpenGlFunctions pointer.";
+        return;
+    }
 
+
+
+    // 1. GERAÇÃO DOS DADOS (como antes)
+    m_vao.reset(); m_vbo.reset(); m_ebo.reset();
     m_currentResolution = resolution;
     if (resolution <= 1) return;
+
 
     std::vector<Vertex> vertices;
     vertices.reserve(static_cast<size_t>(resolution) * static_cast<size_t>(resolution));
@@ -158,11 +163,11 @@ void chunk::generateMesh(int resolution, QOpenGLShaderProgram* terrainShaderProg
 
     // Configura os atributos do vértice.
     // Isso diz ao VAO como interpretar os dados do VBO que acabamos de vincular.
-    terrainShaderProgram->enableAttributeArray(0); // location = 0 (position)
-    terrainShaderProgram->setAttributeBuffer(0, GL_FLOAT, offsetof(Vertex, position), 3, sizeof(Vertex));
+    glFuncs->glEnableVertexAttribArray(0); // location = 0 (position)
+    glFuncs->glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
 
-    terrainShaderProgram->enableAttributeArray(1); // location = 1 (normal)
-    terrainShaderProgram->setAttributeBuffer(1, GL_FLOAT, offsetof(Vertex, normal), 3, sizeof(Vertex));
+    glFuncs->glEnableVertexAttribArray(1); // location = 1 (normal)
+    glFuncs->glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
 
     // Configura o EBO (índices)
     // O VAO também "lembra" qual EBO está vinculado enquanto ele (o VAO) está ativo.
@@ -194,7 +199,7 @@ QVector3D chunk::getCenterPosition() const {
     return QVector3D(worldX, NoiseUtils::getHeight(worldX, worldZ), worldZ);
 }
 
-void chunk::render(QOpenGLShaderProgram* terrainShaderProgram, QOpenGLExtraFunctions *glFuncs) {
+void chunk::render(QOpenGLShaderProgram* terrainShaderProgram, QOpenGLFunctions *glFuncs) {
     if (m_indexCount == 0 || !m_vao || !m_vao->isCreated()) { return; }
 
     terrainShaderProgram->setUniformValue("modelMatrix", m_modelMatrix);
@@ -203,7 +208,7 @@ void chunk::render(QOpenGLShaderProgram* terrainShaderProgram, QOpenGLExtraFunct
     m_vao.release();
 }
 
-void chunk::renderBorders(QOpenGLShaderProgram* lineShaderProgram, QOpenGLExtraFunctions* glFuncs, QOpenGLVertexArrayObject* lineQuadVao, QOpenGLBuffer* lineQuadVbo) {
+void chunk::renderBorders(QOpenGLShaderProgram* lineShaderProgram, QOpenGLFunctions* glFuncs, QOpenGLVertexArrayObject* lineQuadVao, QOpenGLBuffer* lineQuadVbo) {
     if (!lineQuadVao || !lineQuadVao->isCreated()) return;
     lineShaderProgram->setUniformValue("modelMatrix", m_modelMatrix);
     lineQuadVao->bind();

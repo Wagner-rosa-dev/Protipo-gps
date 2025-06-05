@@ -99,7 +99,7 @@ void main() {
 
 MyGLWidget::MyGLWidget(QWidget *parent)
     : QOpenGLWidget(parent), m_extraFunction(nullptr), m_uboBindingPointSceneMatrices(0){
-    connect(&m_timer, &QTimer::timeout, this, QOverload<>::of(&MyGLWidget::update));
+    connect(&m_timer, &QTimer::timeout, this, &MyGLWidget::gameTick);
     m_timer.start(16); // Aproximadamente 60 FPS
 }
 
@@ -148,7 +148,7 @@ void MyGLWidget::initializeGL() {
 
     setupUBO();
     setupLineQuadVAO();
-    m_terrainManager.init(2, &m_terrainShaderProgram, &m_lineShaderProgram, &m_lineQuadVao, &m_lineQuadVbo, m_extraFunction);
+    m_terrainManager.init(2, &m_terrainShaderProgram, &m_lineShaderProgram, &m_lineQuadVao, &m_lineQuadVbo, this);
 
     m_camera.setPosition(QVector3D(CHUNK_SIZE * 0.5f, 35.0f, CHUNK_SIZE * 2.5f));
     m_camera.lookAt(QVector3D(CHUNK_SIZE * 0.5f, 0.0f, 0.0f), QVector3D(0.0f, 1.0f, 0.0f));
@@ -249,7 +249,7 @@ void MyGLWidget::paintGL() {
     // se o shader está linkado antes de usá-lo.
     m_terrainManager.update(m_camera.position(),
                             terrainShaderOk ? &m_terrainShaderProgram : nullptr,
-                            m_extraFunction);
+                            this);
 
     if (terrainShaderOk) {
         m_terrainShaderProgram.bind();
@@ -261,7 +261,7 @@ void MyGLWidget::paintGL() {
 
     m_terrainManager.render(terrainShaderOk ? &m_terrainShaderProgram : nullptr,
                             lineShaderOk ? &m_lineShaderProgram : nullptr,
-                            m_extraFunction);
+                            this);
 
     GLenum err;
     while((err = glGetError()) != GL_NO_ERROR) {
@@ -278,7 +278,7 @@ void MyGLWidget::resizeGL(int w, int h) {
 }
 
 // Slot update chamado pelo m_timer
-void MyGLWidget::update() {
+void MyGLWidget::gameTick() {
     // Lógica de atualização de estado (ex: input do teclado/mouse para câmera)
     // Por enquanto, apenas agenda um repaint.
     QOpenGLWidget::update(); // Reagenda paintGL()

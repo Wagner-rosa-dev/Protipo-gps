@@ -36,10 +36,10 @@ public:
 
 
 
-    void init(int cX, int cZ, QOpenGLShaderProgram* terrainShaderProgram, QOpenGLExtraFunctions *glFuncs);
-    void generateMesh(int resolution, QOpenGLShaderProgram* terrainShaderProgram, QOpenGLExtraFunctions *glFuncs);
-    void render(QOpenGLShaderProgram* terrainShaderProgram, QOpenGLExtraFunctions *glFuncs);
-    void renderBorders(QOpenGLShaderProgram* lineShaderProgram, QOpenGLExtraFunctions* glFuncs, QOpenGLVertexArrayObject* lineQuadVao, QOpenGLBuffer* lineQuadVbo);
+    void init(int cX, int cZ, QOpenGLShaderProgram* terrainShaderProgram, QOpenGLFunctions *glFuncs);
+    void generateMesh(int resolution, QOpenGLShaderProgram* terrainShaderProgram, QOpenGLFunctions *glFuncs);
+    void render(QOpenGLShaderProgram* terrainShaderProgram, QOpenGLFunctions *glFuncs);
+    void renderBorders(QOpenGLShaderProgram* lineShaderProgram, QOpenGLFunctions* glFuncs, QOpenGLVertexArrayObject* lineQuadVao, QOpenGLBuffer* lineQuadVbo);
 
     void setLOD(int lodLevel);
     int getLOD() const {return m_currentLOD; }
