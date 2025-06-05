@@ -16,7 +16,7 @@ struct SceneMatrices {
     QMatrix4x4 viewMatrix;
 };
 
-class MyGLWidget : public QOpenGLWidget, protected QOpenGLFunctions {
+class MyGLWidget : public QOpenGLWidget, protected QOpenGLExtraFunctions {
     Q_OBJECT
 
 public:
@@ -46,6 +46,8 @@ private:
 
     QOpenGLVertexArrayObject m_lineQuadVao;
     QOpenGLBuffer m_lineQuadVbo;
+
+    void update();
 };
 
 #endif // MYGLWIDGET_H

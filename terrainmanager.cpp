@@ -40,7 +40,7 @@ void terrainmanager::update(const QVector3D& cameraPos, QOpenGLShaderProgram* te
 }
 
 void terrainmanager::render(QOpenGLShaderProgram* terrainShaderProgram, QOpenGLShaderProgram* lineShaderProgram, QOpenGLExtraFunctions *glFuncs) {
-    terrainShaderProgram->bind();
+
     for (int i = 0; i < m_gridSize; ++i) {
         for (int j = 0; j < m_gridSize; ++j) {
             m_chunks[i][j].render(terrainShaderProgram, glFuncs);

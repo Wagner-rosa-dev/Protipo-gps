@@ -94,18 +94,13 @@ void chunk::init(int cX, int cZ, QOpenGLShaderProgram* terrainShaderProgram, QOp
 }
 
 void chunk::generateMesh(int resolution, QOpenGLShaderProgram* terrainShaderProgram, QOpenGLExtraFunctions *glFuncs) {
-    //Limpa os buffers antigos antes de criar uma nova malha
+    // 1. GERAÇÃO DOS DADOS (como antes)
     m_vao.reset();
     m_vbo.reset();
     m_ebo.reset();
-    m_indexCount = 0;
-    m_vertexCount = 0;
 
-    if (resolution <= 1) {
-        qWarning() << "Chunk resolution too low or invalid:" << resolution << "for chunk (" << m_chunkGridX << "," << m_chunkGridZ << ")";
-        return;
-    }
     m_currentResolution = resolution;
+    if (resolution <= 1) return;
 
     std::vector<Vertex> vertices;
     vertices.reserve(static_cast<size_t>(resolution) * static_cast<size_t>(resolution));
@@ -146,56 +141,43 @@ void chunk::generateMesh(int resolution, QOpenGLShaderProgram* terrainShaderProg
         }
     }
 
-    m_indexCount = static_cast<int>(indices.size());
     m_vertexCount = static_cast<int>(vertices.size());
+    m_indexCount = static_cast<int>(indices.size());
+    if (m_indexCount == 0) return;
 
-    if (m_indexCount == 0 || m_vertexCount == 0) {
-        qWarning() << "Generated mesh os empty for chunk (" << m_chunkGridX << "," << m_chunkGridZ << ") with resolution" << resolution;
-        return;
-    }
-
-    //Criação e configuração dos buffers
+    // 2. CONFIGURAÇÃO DOS BUFFERS OPENGL (A PARTE CORRIGIDA)
     m_vao = std::make_unique<QOpenGLVertexArrayObject>();
-    if (!m_vao->create()) {
-        qWarning() << "Falied to create VAO for chunk (" << m_chunkGridX << "," << m_chunkGridZ << ")";
-        m_vao.reset(); //Garante que o m_vao é nullptr se a criação falhar
-        return;
-    }
+    m_vao->create();
+    m_vao->bind(); // <<-- VAO vinculado
 
-    m_vao->bind();
-
+    // Configura o VBO (dados dos vértices)
     m_vbo = std::make_unique<QOpenGLBuffer>(QOpenGLBuffer::VertexBuffer);
-    if(!m_vbo->create()) {
-        qWarning() << "Failed to create VBO for chunk (" << m_chunkGridX << "," << m_chunkGridZ << "0";
-        m_vao->release(); m_vao.reset(); //Limpa o VAO
-        m_vbo.reset();
-        return;
-    }
-
+    m_vbo->create();
     m_vbo->bind();
     m_vbo->allocate(vertices.data(), m_vertexCount * sizeof(Vertex));
 
+    // Configura os atributos do vértice.
+    // Isso diz ao VAO como interpretar os dados do VBO que acabamos de vincular.
+    terrainShaderProgram->enableAttributeArray(0); // location = 0 (position)
+    terrainShaderProgram->setAttributeBuffer(0, GL_FLOAT, offsetof(Vertex, position), 3, sizeof(Vertex));
+
+    terrainShaderProgram->enableAttributeArray(1); // location = 1 (normal)
+    terrainShaderProgram->setAttributeBuffer(1, GL_FLOAT, offsetof(Vertex, normal), 3, sizeof(Vertex));
+
+    // Configura o EBO (índices)
+    // O VAO também "lembra" qual EBO está vinculado enquanto ele (o VAO) está ativo.
     m_ebo = std::make_unique<QOpenGLBuffer>(QOpenGLBuffer::IndexBuffer);
-    if (!m_ebo->create()) {
-        qWarning() << "Failed to create EBO for chunk (" << m_chunkGridX << "," << m_chunkGridZ << ")";
-        m_vao->release(); m_vao.reset(); //Limpa o VAO
-        m_vbo.reset();
-        m_ebo.reset();
-        return;
-    }
+    m_ebo->create();
     m_ebo->bind();
     m_ebo->allocate(indices.data(), m_indexCount * sizeof(GLuint));
 
-    terrainShaderProgram->enableAttributeArray(0);
-    terrainShaderProgram->setAttributeBuffer(0, GL_FLOAT, offsetof(Vertex, position), 3, sizeof(Vertex));
-    terrainShaderProgram->enableAttributeArray(1);
-    terrainShaderProgram->setAttributeBuffer(1, GL_FLOAT, offsetof(Vertex, normal), 3, sizeof(Vertex));
+    // 3. LIBERA OS VÍNCULOS (BOA PRÁTICA)
+    m_vao->release(); // Libera o VAO primeiro
 
-    m_vao.release();
-    //m_vbo.release();
-    if (m_ebo) {m_ebo->release(QOpenGLBuffer::IndexBuffer);}
+    // Opcional, mas limpo: desvincular os outros buffers depois que o VAO já guardou o estado.
+    m_vbo->release();
+    m_ebo->release();
 }
-
 
 void chunk::setLOD(int lodLevel) {
     m_currentLOD = lodLevel;
@@ -214,6 +196,7 @@ QVector3D chunk::getCenterPosition() const {
 
 void chunk::render(QOpenGLShaderProgram* terrainShaderProgram, QOpenGLExtraFunctions *glFuncs) {
     if (m_indexCount == 0 || !m_vao || !m_vao->isCreated()) { return; }
+
     terrainShaderProgram->setUniformValue("modelMatrix", m_modelMatrix);
     m_vao->bind();
     glFuncs->glDrawElements(GL_TRIANGLES, m_indexCount, GL_UNSIGNED_INT, nullptr);
