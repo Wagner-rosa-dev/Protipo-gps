@@ -805,7 +805,6 @@ moc_myglwidget.cpp: ../../myglwidget.h \
 		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtGui/qmatrix4x4.h \
 		../../terrainmanager.h \
 		../../chunk.h \
-		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtGui/QOpenGLShader \
 		moc_predefs.h \
 		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/x86_64-tdxsdk-linux/usr/bin/moc
 	/home/wagner/Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/x86_64-tdxsdk-linux/usr/bin/moc $(DEFINES) --include /home/wagner/ExemplosQt/Prototipo-gps/build/Toradex_IMX8MP-Debug/moc_predefs.h -I/home/wagner/Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/lib/mkspecs/linux-oe-g++ -I/home/wagner/ExemplosQt/Prototipo-gps -I/home/wagner/Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtOpenGL -I/home/wagner/Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtWidgets -I/home/wagner/Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtGui -I/home/wagner/Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtCore -I. -I/home/wagner/Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/c++/11.5.0 -I/home/wagner/Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/c++/11.5.0/aarch64-tdx-linux -I/home/wagner/Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/c++/11.5.0/backward -I/home/wagner/Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/x86_64-tdxsdk-linux/usr/lib/aarch64-tdx-linux/gcc/aarch64-tdx-linux/11.5.0/include -I/home/wagner/Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/lib/aarch64-tdx-linux/11.5.0/include -I/home/wagner/Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/x86_64-tdxsdk-linux/usr/lib/aarch64-tdx-linux/gcc/aarch64-tdx-linux/11.5.0/include-fixed -I/home/wagner/Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include ../../myglwidget.h -o moc_myglwidget.cpp
@@ -884,7 +883,6 @@ main.o: ../../main.cpp ../../myglwidget.h \
 		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtGui/qmatrix4x4.h \
 		../../terrainmanager.h \
 		../../chunk.h \
-		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtGui/QOpenGLShader \
 		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtGui/QSurfaceFormat \
 		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtGui/qsurfaceformat.h \
 		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtWidgets/QApplication \
@@ -913,7 +911,6 @@ myglwidget.o: ../../myglwidget.cpp ../../myglwidget.h \
 		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtGui/qmatrix4x4.h \
 		../../terrainmanager.h \
 		../../chunk.h \
-		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtGui/QOpenGLShader \
 		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtGui/QOpenGLContext \
 		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtGui/qopenglcontext.h \
 		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtCore/QDebug \
@@ -941,7 +938,8 @@ terrainmanager.o: ../../terrainmanager.cpp ../../terrainmanager.h \
 		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtGui/qopenglextrafunctions.h \
 		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtGui/QMatrix4x4 \
 		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtGui/qmatrix4x4.h \
-		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtGui/QOpenGLShader \
+		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtGui/QOpenGLFunctions \
+		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtGui/qopenglfunctions.h \
 		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtCore/QDebug \
 		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtCore/qdebug.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o terrainmanager.o ../../terrainmanager.cpp

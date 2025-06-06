@@ -1,56 +1,90 @@
 #include "terrainmanager.h"
 #include <QDebug>
+#include <cmath>
 
-terrainmanager::terrainmanager() : m_gridSize(0), m_lineQuadVaoRef(nullptr), m_lineQuadVboRef(nullptr)
+
+terrainmanager::terrainmanager() :
+    m_centerChunkX(0),
+    m_centerChunkZ(0),
+    m_lineQuadVaoRef(nullptr),
+    m_lineQuadVboRef(nullptr)
 {}
 
-void terrainmanager::init(int gridSize, QOpenGLShaderProgram* terrainShaderProgram, QOpenGLShaderProgram* lineShaderProgram, QOpenGLVertexArrayObject* lineQuadVao, QOpenGLBuffer* lineQuadVbo, QOpenGLFunctions *glFuncs) {
-    m_gridSize = gridSize;
-    m_chunks.resize(m_gridSize);
+void terrainmanager::init(QOpenGLShaderProgram* terrainShaderProgram, QOpenGLShaderProgram* lineShaderProgram, QOpenGLVertexArrayObject* lineQuadVao, QOpenGLBuffer* lineQuadVbo, QOpenGLFunctions *glFuncs) {
     m_lineQuadVaoRef = lineQuadVao;
     m_lineQuadVboRef = lineQuadVbo;
 
-    for (int i = 0; i < m_gridSize; ++i) {
-        m_chunks[i].resize(m_gridSize);
-        for (int j = 0; j < m_gridSize; ++j) {
-            int chunkX = i - m_gridSize / 2;
-            int chunkZ = j - m_gridSize / 2;
-            m_chunks[i][j].init(chunkX, chunkZ, terrainShaderProgram, glFuncs);
-        }
+    m_chunks.resize(GRID_SIZE);
+    for (int i = 0; i < GRID_SIZE; ++i) {
+        m_chunks[i].resize(GRID_SIZE);
     }
+
+    //inicia a grade centrada em (0, 0)
+    recenterGrid(0, 0, terrainShaderProgram, glFuncs);
 }
 
 void terrainmanager::update(const QVector3D& cameraPos, QOpenGLShaderProgram* terrainShaderProgram, QOpenGLFunctions *glFuncs) {
-    for (int i = 0; i < m_gridSize; ++i) {
-        for (int j = 0; j < m_gridSize; ++j) {
-            chunk& chunk = m_chunks[i][j];
-            float distanceToChunk = cameraPos.distanceToPoint(chunk.getCenterPosition());
+    // Verifica se o centro da grade precisa mudar (logica de terreno infinito)
+    int cameraChunkX = static_cast<int>(std::floor(cameraPos.x() / CHUNK_SIZE));
+    int cameraChunkZ = static_cast<int>(std::floor(cameraPos.z() / CHUNK_SIZE));
+
+    if (cameraChunkX != m_centerChunkX || cameraChunkZ != m_centerChunkZ) {
+        recenterGrid(cameraChunkX, cameraChunkZ, terrainShaderProgram, glFuncs);
+    }
+
+    //atualiza o nivel de detalhe (LOD) dos chunks existentes
+    for (int i = 0; i < GRID_SIZE; ++i) {
+        for (int j = 0; j < GRID_SIZE; ++j){
+            chunk& currentChunk = m_chunks[i][j];
+            float distanceToChunk = cameraPos.distanceToPoint(currentChunk.getCenterPosition());
+
             int desiredLOD = (distanceToChunk > LOD_DISTANCE_THRESHOLD) ? 1 : 0;
-            if (chunk.getLOD() != desiredLOD) {
-                int oldRes = (chunk.getLOD() == 0) ? chunk::HIGH_RES : chunk::LOW_RES;
-                chunk.setLOD(desiredLOD);
-                int newRes = (chunk.getLOD() == 0) ? chunk::HIGH_RES : chunk::LOW_RES;
-                if(oldRes != newRes) {
-                    // qDebug() << "Chunk" << i << j << "changed LOD to" << desiredLOD << "res" << newRes << "dist" << distanceToChunk;
-                    chunk.generateMesh(newRes, terrainShaderProgram, glFuncs);
+            if (currentChunk.getLOD() != desiredLOD) {
+                int oldRes = currentChunk.getLOD() == 0 ? HIGH_RES : LOW_RES;
+                currentChunk.setLOD(desiredLOD);
+                int newRes = currentChunk.getLOD() == 0 ? HIGH_RES : LOW_RES;
+
+                if (oldRes != newRes) {
+                    currentChunk.generateMesh(newRes, terrainShaderProgram, glFuncs);
                 }
             }
         }
     }
 }
 
-void terrainmanager::render(QOpenGLShaderProgram* terrainShaderProgram, QOpenGLShaderProgram* lineShaderProgram, QOpenGLFunctions *glFuncs) {
+void terrainmanager::recenterGrid(int newCenterX, int newCenterZ, QOpenGLShaderProgram* terrainShaderProgram, QOpenGLFunctions* glFuncs){
+    qInfo() << "Recentering grid to:" << newCenterX << "," << newCenterZ;
+    m_centerChunkX = newCenterX;
+    m_centerChunkZ = newCenterZ;
 
-    for (int i = 0; i < m_gridSize; ++i) {
-        for (int j = 0; j < m_gridSize; ++j) {
-            m_chunks[i][j].render(terrainShaderProgram, glFuncs);
+    int halfGrid = GRID_SIZE / 2;
+
+    for (int i = 0; i < GRID_SIZE; ++i) {
+        for (int j = 0; j < GRID_SIZE; ++j) {
+            int chunkX = m_centerChunkX - halfGrid + i;
+            int chunkZ = m_centerChunkZ - halfGrid + j;
+            //Recicla o chunk na posição [i][j] da nossa matriz a nova coordenada
+            m_chunks[i][j].recycle(chunkX, chunkZ, terrainShaderProgram, glFuncs);
+        }
+    }
+}
+
+void terrainmanager::render(QOpenGLShaderProgram* terrainShaderProgram, QOpenGLShaderProgram* lineShaderProgram, QOpenGLFunctions *glFuncs) {
+    // Se o shader de terreno foi passado, desenhamos o terreno.
+    if (terrainShaderProgram) {
+        for (int i = 0; i < GRID_SIZE; ++i) {
+            for (int j = 0; j < GRID_SIZE; ++j) {
+                m_chunks[i][j].render(terrainShaderProgram, glFuncs);
+            }
         }
     }
 
-    lineShaderProgram->bind();
-    for (int i = 0; i < m_gridSize; ++i) {
-        for (int j = 0; j < m_gridSize; ++j) {
-            m_chunks[i][j].renderBorders(lineShaderProgram, glFuncs, m_lineQuadVaoRef, m_lineQuadVboRef);
+    // Se o shader de linha foi passado, desenhamos as bordas.
+    if (lineShaderProgram) {
+        for (int i = 0; i < GRID_SIZE; ++i) {
+            for (int j = 0; j < GRID_SIZE; ++j) {
+                m_chunks[i][j].renderBorders(lineShaderProgram, glFuncs, m_lineQuadVaoRef, m_lineQuadVboRef);
+            }
         }
     }
 }

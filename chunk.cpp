@@ -205,7 +205,7 @@ void chunk::render(QOpenGLShaderProgram* terrainShaderProgram, QOpenGLFunctions 
     terrainShaderProgram->setUniformValue("modelMatrix", m_modelMatrix);
     m_vao->bind();
     glFuncs->glDrawElements(GL_TRIANGLES, m_indexCount, GL_UNSIGNED_INT, nullptr);
-    m_vao.release();
+    m_vao->release();
 }
 
 void chunk::renderBorders(QOpenGLShaderProgram* lineShaderProgram, QOpenGLFunctions* glFuncs, QOpenGLVertexArrayObject* lineQuadVao, QOpenGLBuffer* lineQuadVbo) {
@@ -214,4 +214,22 @@ void chunk::renderBorders(QOpenGLShaderProgram* lineShaderProgram, QOpenGLFuncti
     lineQuadVao->bind();
     glFuncs->glDrawArrays(GL_LINE_LOOP, 0, 4);
     lineQuadVao->release();
+}
+
+void chunk::recycle(int cX,int cZ, QOpenGLShaderProgram* terrainShaderProgram, QOpenGLFunctions *glFuncs) {
+    //Esta função reutiliza o chunk em uma nova posição
+    m_chunkGridX = cX;
+    m_chunkGridZ = cZ;
+    float worldX = static_cast<float>(m_chunkGridX * CHUNK_SIZE);
+    float worldZ = static_cast<float>(m_chunkGridZ * CHUNK_SIZE);
+    m_modelMatrix.setToIdentity();
+    m_modelMatrix.translate(worldX, 0.0f, worldZ);
+
+    //Força o LOD a ser reavaliado. poderiamos simplesmente gerar com alta resolução
+    //ou manter o LOD anterior para evit "pop-in" de geometria. vamos gerar com a resolução atual.
+    if(m_currentResolution == 0) {
+        setLOD(0);
+    }
+
+    generateMesh(m_currentResolution, terrainShaderProgram, glFuncs);
 }

@@ -17,11 +17,8 @@ const char* terrainVertexShaderSource = R"(#version 300 es
 layout (location = 0) in vec3 a_position;
 layout (location = 1) in vec3 a_normal;
 
-layout (std140) uniform SceneMatrices {
-    mat4 projectionMatrix;
-    mat4 viewMatrix;
-};
-
+uniform mat4 projectionMatrix;
+uniform mat4 viewMatrix;
 uniform mat4 modelMatrix;
 
 out vec3 v_worldPos;
@@ -34,6 +31,9 @@ void main() {
     v_normal = normalize(mat3(modelMatrix) * a_normal);
 }
 )";
+
+
+
 const char* terrainFragmentShaderSource = R"(#version 300 es
 
 // Terrain Fragment Shader - TESTE_VERSAO_NOVA_SHADER_04_06_2025
@@ -65,17 +65,15 @@ void main() {
 }
 )";
 
+
 const char* lineVertexShaderSource = R"(#version 300 es
 
 // Line Vertex Shader - TESTE_VERSAO_NOVA_SHADER_04_06_2025
 
 layout (location = 0) in vec3 a_position;
 
-layout (std140) uniform SceneMatrices {
-    mat4 projectionMatrix;
-    mat4 viewMatrix;
-};
-
+uniform mat4 projectionMatrix;
+uniform mat4 viewMatrix;
 uniform mat4 modelMatrix;
 
 void main() {
@@ -83,6 +81,10 @@ void main() {
     gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(elevated_position, 1.0);
 }
 )";
+
+
+
+
 
 const char* lineFragmentShaderSource = R"(#version 300 es
 
@@ -98,7 +100,7 @@ void main() {
 )";
 
 MyGLWidget::MyGLWidget(QWidget *parent)
-    : QOpenGLWidget(parent), m_extraFunction(nullptr), m_uboBindingPointSceneMatrices(0){
+    : QOpenGLWidget(parent), m_extraFunction(nullptr) {
     connect(&m_timer, &QTimer::timeout, this, &MyGLWidget::gameTick);
     m_timer.start(16); // Aproximadamente 60 FPS
 }
@@ -146,49 +148,13 @@ void MyGLWidget::initializeGL() {
         qInfo() << "Line Shaders linked successfully.";
     }
 
-    setupUBO();
     setupLineQuadVAO();
-    m_terrainManager.init(2, &m_terrainShaderProgram, &m_lineShaderProgram, &m_lineQuadVao, &m_lineQuadVbo, this);
+    m_terrainManager.init(&m_terrainShaderProgram, &m_lineShaderProgram, &m_lineQuadVao, &m_lineQuadVbo, this);
 
     m_camera.setPosition(QVector3D(CHUNK_SIZE * 0.5f, 35.0f, CHUNK_SIZE * 2.5f));
     m_camera.lookAt(QVector3D(CHUNK_SIZE * 0.5f, 0.0f, 0.0f), QVector3D(0.0f, 1.0f, 0.0f));
 }
 
-void MyGLWidget::setupUBO() {
-    if (!m_extraFunction) {
-        qWarning("Cannot setup UBO: QOpenGLExtraFunctions not available.");
-        return;
-    }
-    m_uboBindingPointSceneMatrices = 0;
-    m_sceneMatricesUBO.create();
-    m_sceneMatricesUBO.bind();
-    m_sceneMatricesUBO.allocate(sizeof(SceneMatrices));
-    m_sceneMatricesUBO.release();
-
-    m_extraFunction->glBindBufferBase(GL_UNIFORM_BUFFER, m_uboBindingPointSceneMatrices, m_sceneMatricesUBO.bufferId());
-
-    if (m_terrainShaderProgram.isLinked()) {
-        GLuint terrainBlockIndex = m_extraFunction->glGetUniformBlockIndex(m_terrainShaderProgram.programId(), "SceneMatrices");
-        if (terrainBlockIndex != GL_INVALID_INDEX) {
-            m_extraFunction->glUniformBlockBinding(m_terrainShaderProgram.programId(), terrainBlockIndex, m_uboBindingPointSceneMatrices);
-        } else {
-            qWarning("Uniform block 'SceneMatrices' not found in terrain shader.");
-        }
-    } else {
-        qWarning("Terrain shader program not linked, cannot bind UBO for terrain shader.");
-    }
-
-    if (m_lineShaderProgram.isLinked()) {
-        GLuint lineBlockIndex = m_extraFunction->glGetUniformBlockIndex(m_lineShaderProgram.programId(), "SceneMatrices");
-        if (lineBlockIndex != GL_INVALID_INDEX) {
-            m_extraFunction->glUniformBlockBinding(m_lineShaderProgram.programId(), lineBlockIndex, m_uboBindingPointSceneMatrices);
-        } else {
-            qWarning("Uniform block 'SceneMatrices' not found in line shader.");
-        }
-    } else {
-        qWarning("Line shader program not linked, cannot bind UBO for line shader.");
-    }
-}
 
 void MyGLWidget::setupLineQuadVAO() {
     GLfloat lineQuadVertices[] = {
@@ -223,53 +189,40 @@ void MyGLWidget::paintGL() {
     bool lineShaderOk = m_lineShaderProgram.isLinked();
 
     if (!terrainShaderOk && !lineShaderOk) {
-        // qWarning("Neither terrain nor line shaders are linked. Skipping rendering.");
-        // A mensagem de erro já foi emitida durante initializeGL
         return;
     }
 
-    SceneMatrices matrices;
-    matrices.projectionMatrix = m_camera.projectionMatrix();
-    matrices.viewMatrix = m_camera.viewMatrix();
-
-    if (m_sceneMatricesUBO.isCreated()) {
-        m_sceneMatricesUBO.bind();
-        void *ptr = m_sceneMatricesUBO.mapRange(0, sizeof(SceneMatrices), QOpenGLBuffer::RangeWrite | QOpenGLBuffer::RangeInvalidateBuffer);
-        if (ptr) {
-            memcpy(ptr, &matrices, sizeof(SceneMatrices));
-            m_sceneMatricesUBO.unmap();
-        } else {
-            qWarning("Failed to map UBO for writing SceneMatrices.");
-        }
-        m_sceneMatricesUBO.release();
-    }
-
-    // Passa os ponteiros dos shaders para o terrainManager.
-    // O terrainManager internamente (ou as classes chunk) devem verificar
-    // se o shader está linkado antes de usá-lo.
     m_terrainManager.update(m_camera.position(),
                             terrainShaderOk ? &m_terrainShaderProgram : nullptr,
                             this);
 
+    // Renderiza o terreno
     if (terrainShaderOk) {
         m_terrainShaderProgram.bind();
+        // Não precisamos mais passar as matrizes de câmera aqui, o UBO cuida disso.
+        m_terrainShaderProgram.setUniformValue("projectionMatrix", m_camera.projectionMatrix());
+        m_terrainShaderProgram.setUniformValue("viewMatrix", m_camera.viewMatrix());
         m_terrainShaderProgram.setUniformValue("lightPos", QVector3D(50.0f, 100.0f, 50.0f));
         m_terrainShaderProgram.setUniformValue("lightColor", QVector3D(1.0f, 1.0f, 1.0f));
         m_terrainShaderProgram.setUniformValue("objectBaseColor", QVector3D(0.4f, 0.6f, 0.2f));
     }
 
+    // Renderiza as bordas
+    if (lineShaderOk) {
+        m_lineShaderProgram.bind();
+        m_lineShaderProgram.setUniformValue("projectionMatrix", m_camera.projectionMatrix());
+        m_lineShaderProgram.setUniformValue("viewMatrix", m_camera.viewMatrix());
+    }
 
     m_terrainManager.render(terrainShaderOk ? &m_terrainShaderProgram : nullptr,
                             lineShaderOk ? &m_lineShaderProgram : nullptr,
                             this);
 
+
     GLenum err;
     while((err = glGetError()) != GL_NO_ERROR) {
         qWarning() << "Erro no OpenGl em tempo de execução" << err;
     }
-
-
-
 }
 
 void MyGLWidget::resizeGL(int w, int h) {

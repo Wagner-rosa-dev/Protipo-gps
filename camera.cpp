@@ -26,7 +26,7 @@ void camera::lookAt(const QVector3D &target, const QVector3D &up){
     m_viewMatrix.lookAt(m_position, target, up);
     m_front = (target - m_position).normalized();
     m_right = QVector3D::crossProduct(m_front, m_worldUp).normalized();
-    m_up = QVector3D::crossProduct(m_right, m_worldUp).normalized();
+    m_up = QVector3D::crossProduct(m_right, m_front).normalized();
     m_yaw = qRadiansToDegrees(atan2(m_front.z(), m_front.x()));
     m_pitch = qRadiansToDegrees(asin(m_front.y()));
     if (m_pitch > 89.0f) m_pitch = 89.0f;

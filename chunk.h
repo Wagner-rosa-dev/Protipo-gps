@@ -11,12 +11,14 @@
 #include <utility>
 #include <memory>
 
+const int CHUNK_SIZE = 32;
+const int HIGH_RES = 65;
+const int LOW_RES = 17;
+
 struct Vertex {
     QVector3D position;
     QVector3D normal;
 };
-
-const int CHUNK_SIZE = 32;
 
 class chunk {
 public:
@@ -37,6 +39,7 @@ public:
 
 
     void init(int cX, int cZ, QOpenGLShaderProgram* terrainShaderProgram, QOpenGLFunctions *glFuncs);
+    void recycle(int cX, int cZ, QOpenGLShaderProgram* terrainShaderProgram, QOpenGLFunctions *glFuncs);
     void generateMesh(int resolution, QOpenGLShaderProgram* terrainShaderProgram, QOpenGLFunctions *glFuncs);
     void render(QOpenGLShaderProgram* terrainShaderProgram, QOpenGLFunctions *glFuncs);
     void renderBorders(QOpenGLShaderProgram* lineShaderProgram, QOpenGLFunctions* glFuncs, QOpenGLVertexArrayObject* lineQuadVao, QOpenGLBuffer* lineQuadVbo);
@@ -59,10 +62,6 @@ private:
     QMatrix4x4 m_modelMatrix;
     int m_currentResolution;
     int m_currentLOD;
-
-public:
-    static const int HIGH_RES = 16;
-    static const int LOW_RES = 8;
 };
 
 #endif // CHUNK_H

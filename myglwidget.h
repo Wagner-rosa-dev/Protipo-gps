@@ -41,9 +41,6 @@ private:
 
     QOpenGLExtraFunctions *m_extraFunction;
 
-    QOpenGLBuffer m_sceneMatricesUBO;
-    GLuint m_uboBindingPointSceneMatrices;
-
     QOpenGLVertexArrayObject m_lineQuadVao;
     QOpenGLBuffer m_lineQuadVbo;
 
