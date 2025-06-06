@@ -1,13 +1,12 @@
 #include "myglwidget.h"
 #include <QOpenGLContext>
 #include <QDebug>
-#include <QOpenGLShaderProgram> // Incluído para QOpenGLShaderProgram
+#include <QOpenGLShaderProgram>
+#include "noiseutils.h"// Incluído para QOpenGLShaderProgram
+#include <QKeyEvent>
 
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-// !! VERIFIQUE SE ESTA É A VERSÃO DO ARQUIVO myglwidget.cpp QUE ESTÁ SENDO  !!
-// !! EFETIVAMENTE COMPILADA E EXECUTADA NA SUA PLACA TORADEX.               !!
-// !! Data/Hora da Modificação: 04/06/2025                                   !!
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
 
 //Constantes com o código GLSL dos shaders
 const char* terrainVertexShaderSource = R"(#version 300 es
@@ -99,6 +98,29 @@ void main() {
 }
 )";
 
+const char* tractorVertexShaderSource = R"(#version 300 es
+layout (location = 0) in vec3 a_position;
+
+uniform mat4 projectionMatrix;
+uniform mat4 viewMatrix;
+uniform mat4 modelMatrix;
+
+void main() {
+    gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(a_position, 1.0);
+}
+)";
+
+const char* tractorFragmentShaderSource = R"(#version 300 es
+precision mediump float;
+
+out vec4 FragColor;
+
+void main() {
+    FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+}
+)";
+
+
 MyGLWidget::MyGLWidget(QWidget *parent)
     : QOpenGLWidget(parent), m_extraFunction(nullptr) {
     connect(&m_timer, &QTimer::timeout, this, &MyGLWidget::gameTick);
@@ -149,10 +171,13 @@ void MyGLWidget::initializeGL() {
     }
 
     setupLineQuadVAO();
+    setupTractorGL();
     m_terrainManager.init(&m_terrainShaderProgram, &m_lineShaderProgram, &m_lineQuadVao, &m_lineQuadVbo, this);
 
-    m_camera.setPosition(QVector3D(CHUNK_SIZE * 0.5f, 35.0f, CHUNK_SIZE * 2.5f));
-    m_camera.lookAt(QVector3D(CHUNK_SIZE * 0.5f, 0.0f, 0.0f), QVector3D(0.0f, 1.0f, 0.0f));
+    m_tractorPosition = QVector3D(16.0f, 0.0f, 16.0f);
+    m_tractorRotation = 0.0f;
+    m_tractorPosition.setY(NoiseUtils::getHeight(m_tractorPosition.x(), m_tractorPosition.z()));
+
 }
 
 
@@ -183,14 +208,19 @@ void MyGLWidget::setupLineQuadVAO() {
 }
 
 void MyGLWidget::paintGL() {
+    //logica da camera inteligente (segue o trator)
+    float angleRad = qDegreesToRadians(m_tractorRotation);
+    QVector3D tractorForward(sin(angleRad), 0.0f, -cos(angleRad));
+    QVector3D cameraOffset = -tractorForward * 15.0f + QVector3D(0.0f, 8.0f, 0.0f);
+    QVector3D cameraPos = m_tractorPosition + cameraOffset;
+    m_camera.lookAt(cameraPos, m_tractorPosition, QVector3D(0.0f, 1.0f, 0.0f));
+
+
+
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     bool terrainShaderOk = m_terrainShaderProgram.isLinked();
     bool lineShaderOk = m_lineShaderProgram.isLinked();
-
-    if (!terrainShaderOk && !lineShaderOk) {
-        return;
-    }
 
     m_terrainManager.update(m_camera.position(),
                             terrainShaderOk ? &m_terrainShaderProgram : nullptr,
@@ -206,9 +236,22 @@ void MyGLWidget::paintGL() {
         m_terrainShaderProgram.setUniformValue("objectBaseColor", QVector3D(0.4f, 0.6f, 0.2f)); //Verde claro
     }
 
-    m_terrainManager.render(terrainShaderOk ? &m_terrainShaderProgram : nullptr,
-                            lineShaderOk ? &m_lineShaderProgram : nullptr,
-                            this);
+    m_terrainManager.render(terrainShaderOk ? &m_terrainShaderProgram : nullptr, lineShaderOk ? &m_lineShaderProgram : nullptr, this);
+
+    //Renderiza o trator
+    if (m_tractorShaderProgram.isLinked()) {
+        m_tractorShaderProgram.bind();
+        QMatrix4x4 tractorModelMatrix;
+        tractorModelMatrix.translate(m_tractorPosition);
+        tractorModelMatrix.rotate(m_tractorRotation, 0.0f, 1.0f, 0.0f);
+        m_tractorShaderProgram.setUniformValue("projectionMatrix", m_camera.projectionMatrix());
+        m_tractorShaderProgram.setUniformValue("viewMatrix", m_camera.viewMatrix());
+        m_tractorShaderProgram.setUniformValue("modelMatrix", tractorModelMatrix);
+        m_tractorVao.bind();
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+        m_tractorVao.release();
+
+    }
 
 
     GLenum err;
@@ -227,4 +270,42 @@ void MyGLWidget::gameTick() {
     // Lógica de atualização de estado (ex: input do teclado/mouse para câmera)
     // Por enquanto, apenas agenda um repaint.
     QOpenGLWidget::update(); // Reagenda paintGL()
+}
+
+void MyGLWidget::setupTractorGL() {
+    if (!m_tractorShaderProgram.addShaderFromSourceCode(QOpenGLShader::Vertex, tractorVertexShaderSource) ||
+        !m_tractorShaderProgram.addShaderFromSourceCode(QOpenGLShader::Fragment, tractorFragmentShaderSource) ||
+        !m_tractorShaderProgram.link()) {
+        qWarning() << "Erro no shader do trator:" << m_tractorShaderProgram.log();
+        return;
+    }
+
+    GLfloat tractorVertices[] = {0.0f, 0.5f, -0.75, -0.5, 0.0f, 0.25f, 0.5f, 0.0f, 0.25f}; // Triangulo apontando para o Z negativo
+
+    m_tractorVao.create();
+    m_tractorVao.bind();
+    m_tractorVbo.create();
+    m_tractorVbo.bind();
+    m_tractorVbo.allocate(tractorVertices, sizeof(tractorVertices));
+    m_tractorShaderProgram.enableAttributeArray(0);
+    m_tractorShaderProgram.setAttributeBuffer(0, GL_FLOAT, 0, 3, 0);
+    m_tractorVao.release();
+    m_tractorVbo.release();
+}
+
+void MyGLWidget::keyPressEvent(QKeyEvent *event) {
+    float moveSpeed = 1.0f;
+    float rotateSpeed = 5.0f;
+
+    float angleRad = qDegreesToRadians(m_tractorRotation);
+    QVector3D tractorForward(sin(angleRad), 0.0f, -cos(angleRad));
+
+    switch(event->key()) {
+    case Qt::Key_W: m_tractorPosition += tractorForward * moveSpeed; break;
+    case Qt::Key_S: m_tractorPosition -= tractorForward * moveSpeed; break;
+    case Qt::Key_A: m_tractorRotation -= rotateSpeed; break;
+    case Qt::Key_D: m_tractorRotation += rotateSpeed; break;
+    default: QOpenGLWidget::keyPressEvent(event); return;
+    }
+    m_tractorPosition.setY(NoiseUtils::getHeight(m_tractorPosition.x(), m_tractorPosition.z()));
 }

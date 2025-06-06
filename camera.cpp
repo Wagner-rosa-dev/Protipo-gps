@@ -9,23 +9,19 @@ camera::camera() :
     m_pitch(0.0f)
 {
     updateCameraVectors();
-    lookAt(m_position + m_front, m_worldUp);
 }
 
-void camera::setPosition(const QVector3D &position){
-    m_position = position;
-    updateCameraVectors();
-}
+
 
 QVector3D camera::position() const {
     return m_position;
 }
 
-void camera::lookAt(const QVector3D &target, const QVector3D &up){
-    m_viewMatrix.setToIdentity();
-    m_viewMatrix.lookAt(m_position, target, up);
+void camera::lookAt(const QVector3D &position, const QVector3D &target, const QVector3D &up){
+    m_position = position;
+
     m_front = (target - m_position).normalized();
-    m_right = QVector3D::crossProduct(m_front, m_worldUp).normalized();
+    m_right = QVector3D::crossProduct(m_front, up).normalized();
     m_up = QVector3D::crossProduct(m_right, m_front).normalized();
     m_yaw = qRadiansToDegrees(atan2(m_front.z(), m_front.x()));
     m_pitch = qRadiansToDegrees(asin(m_front.y()));

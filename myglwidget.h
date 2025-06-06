@@ -27,9 +27,11 @@ protected:
     void initializeGL() override;
     void paintGL() override;
     void resizeGL(int w, int h) override;
+    void keyPressEvent(QKeyEvent *event) override;
 
 private:
     void setupLineQuadVAO();
+    void setupTractorGL();
 
     QTimer m_timer;
     camera m_camera;
@@ -44,6 +46,13 @@ private:
     QOpenGLBuffer m_lineQuadVbo;
 
     void gameTick();
+
+    QOpenGLShaderProgram m_tractorShaderProgram;
+    QOpenGLVertexArrayObject m_tractorVao;
+    QOpenGLBuffer m_tractorVbo;
+
+    QVector3D m_tractorPosition;
+    float m_tractorRotation; // em graus
 };
 
 #endif // MYGLWIDGET_H

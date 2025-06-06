@@ -10,6 +10,8 @@
 #include <vector>
 #include <utility>
 #include <memory>
+#include <QTimer>
+#include <QKeyEvent>
 
 const int CHUNK_SIZE = 32;
 const int HIGH_RES = 65;

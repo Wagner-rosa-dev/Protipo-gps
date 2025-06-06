@@ -8,10 +8,10 @@ class camera{
 public:
     camera();
 
-    void setPosition(const QVector3D &position);
+
     QVector3D position() const;
 
-    void lookAt(const QVector3D &target, const QVector3D &up);
+    void lookAt(const QVector3D &position, const QVector3D &target, const QVector3D &up);
     void setPerspective(float fov, float aspect, float nearPlane, float farPlane);
 
     QMatrix4x4 viewMatrix() const;
