@@ -76,7 +76,7 @@ uniform mat4 viewMatrix;
 uniform mat4 modelMatrix;
 
 void main() {
-    vec3 elevated_position = a_position + vec3(0.0, 0.1, 0.0);
+    vec3 elevated_position = a_position + vec3(0.0, 0.2, 0.0);
     gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(elevated_position, 1.0);
 }
 )";
@@ -209,11 +209,18 @@ void MyGLWidget::setupLineQuadVAO() {
 
 void MyGLWidget::paintGL() {
     //logica da camera inteligente (segue o trator)
+
+    float distancia = 12.0f; //dsitancia da camera
+    float altura = 3.0f; // altura da camera
+
     float angleRad = qDegreesToRadians(m_tractorRotation);
     QVector3D tractorForward(sin(angleRad), 0.0f, -cos(angleRad));
-    QVector3D cameraOffset = -tractorForward * 15.0f + QVector3D(0.0f, 8.0f, 0.0f);
-    QVector3D cameraPos = m_tractorPosition + cameraOffset;
-    m_camera.lookAt(cameraPos, m_tractorPosition, QVector3D(0.0f, 1.0f, 0.0f));
+
+    QVector3D cameraPos = m_tractorPosition - (tractorForward * distancia) + QVector3D(0.0f, altura, 0.0f);
+
+    QVector3D cameraTarget = m_tractorPosition + QVector3D(0.0f, 1.0f, 0.0f);
+
+    m_camera.lookAt(cameraPos, cameraTarget, QVector3D(0.0f, 1.0f, 0.0f));
 
 
 
@@ -242,8 +249,33 @@ void MyGLWidget::paintGL() {
     if (m_tractorShaderProgram.isLinked()) {
         m_tractorShaderProgram.bind();
         QMatrix4x4 tractorModelMatrix;
-        tractorModelMatrix.translate(m_tractorPosition);
-        tractorModelMatrix.rotate(m_tractorRotation, 0.0f, 1.0f, 0.0f);
+
+        //Logica de orientação avançada
+        //pega a normal do terreno na posição exata do trator
+        QVector3D terrainNormal = NoiseUtils::getNormal(m_tractorPosition.x(), m_tractorPosition.z());
+
+        //calcula o vetor para frente do trator baseado na rotação
+        float angleRad = qDegreesToRadians(m_tractorRotation);
+        QVector3D baseForward(sin(angleRad), 0.0f, -cos(angleRad));
+
+        //Calcula os novos eixos de direção do trator, alinhados ao terreno.
+        QVector3D tractorUp = terrainNormal;
+        QVector3D tractorRight = QVector3D::crossProduct(baseForward, tractorUp).normalized();
+        QVector3D tractorForward = QVector3D::crossProduct(tractorUp, tractorRight).normalized();
+
+        //Cria a matriz de transformação completa
+        QMatrix4x4 rotationMatrix;
+        rotationMatrix.setColumn(0, tractorRight); //Eixo X do trator
+        rotationMatrix.setColumn(1, tractorUp); //Eixo Y do trator
+        rotationMatrix.setColumn(2, tractorForward); //Eixo Z do trator
+
+        QMatrix4x4 translationMatrix;
+        translationMatrix.translate(m_tractorPosition);
+
+        tractorModelMatrix = translationMatrix * rotationMatrix;
+        // fim da logica
+
+
         m_tractorShaderProgram.setUniformValue("projectionMatrix", m_camera.projectionMatrix());
         m_tractorShaderProgram.setUniformValue("viewMatrix", m_camera.viewMatrix());
         m_tractorShaderProgram.setUniformValue("modelMatrix", tractorModelMatrix);
@@ -262,7 +294,7 @@ void MyGLWidget::paintGL() {
 
 void MyGLWidget::resizeGL(int w, int h) {
     glViewport(0, 0, w, h);
-    m_camera.setPerspective(45.0f, static_cast<float>(w) / static_cast<float>(h > 0 ? h : 1), 0.1f, 1000.0f);
+    m_camera.setPerspective(35.0f, static_cast<float>(w) / static_cast<float>(h > 0 ? h : 1), 0.1f, 1000.0f);
 }
 
 // Slot update chamado pelo m_timer
