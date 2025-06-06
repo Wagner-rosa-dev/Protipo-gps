@@ -119,8 +119,8 @@ void MyGLWidget::initializeGL() {
         qWarning("QOpenGLExtraFunctions not available. UBOs and other advanced features might not work.");
     }
 
-    glClearColor(0.1f, 0.1f, 0.2f, 1.0f); // Cor de fundo azul escura
     glEnable(GL_DEPTH_TEST); // Habilita teste de profundidade
+    glClearColor(0.53f, 0.81f, 0.92f, 1.0f); // Cor de fundo azul escura
 
     qInfo() << "Compilando Terrain Shaders (Versão de Teste 04/06/2025)...";
     if (!m_terrainShaderProgram.addShaderFromSourceCode(QOpenGLShader::Vertex, terrainVertexShaderSource)) {
@@ -199,19 +199,11 @@ void MyGLWidget::paintGL() {
     // Renderiza o terreno
     if (terrainShaderOk) {
         m_terrainShaderProgram.bind();
-        // Não precisamos mais passar as matrizes de câmera aqui, o UBO cuida disso.
         m_terrainShaderProgram.setUniformValue("projectionMatrix", m_camera.projectionMatrix());
         m_terrainShaderProgram.setUniformValue("viewMatrix", m_camera.viewMatrix());
         m_terrainShaderProgram.setUniformValue("lightPos", QVector3D(50.0f, 100.0f, 50.0f));
         m_terrainShaderProgram.setUniformValue("lightColor", QVector3D(1.0f, 1.0f, 1.0f));
-        m_terrainShaderProgram.setUniformValue("objectBaseColor", QVector3D(0.4f, 0.6f, 0.2f));
-    }
-
-    // Renderiza as bordas
-    if (lineShaderOk) {
-        m_lineShaderProgram.bind();
-        m_lineShaderProgram.setUniformValue("projectionMatrix", m_camera.projectionMatrix());
-        m_lineShaderProgram.setUniformValue("viewMatrix", m_camera.viewMatrix());
+        m_terrainShaderProgram.setUniformValue("objectBaseColor", QVector3D(0.4f, 0.6f, 0.2f)); //Verde claro
     }
 
     m_terrainManager.render(terrainShaderOk ? &m_terrainShaderProgram : nullptr,

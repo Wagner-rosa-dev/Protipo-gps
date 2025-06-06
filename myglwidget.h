@@ -29,7 +29,6 @@ protected:
     void resizeGL(int w, int h) override;
 
 private:
-    void setupUBO();
     void setupLineQuadVAO();
 
     QTimer m_timer;
