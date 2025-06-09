@@ -55,15 +55,19 @@ OBJECTS_DIR   = ./
 SOURCES       = ../../camera.cpp \
 		../../chunk.cpp \
 		../../main.cpp \
+		../../mainwindow.cpp \
 		../../myglwidget.cpp \
 		../../noiseutils.cpp \
-		../../terrainmanager.cpp moc_myglwidget.cpp
+		../../terrainmanager.cpp moc_mainwindow.cpp \
+		moc_myglwidget.cpp
 OBJECTS       = camera.o \
 		chunk.o \
 		main.o \
+		mainwindow.o \
 		myglwidget.o \
 		noiseutils.o \
 		terrainmanager.o \
+		moc_mainwindow.o \
 		moc_myglwidget.o
 DIST          = /Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/lib/mkspecs/features/spec_pre.prf \
 		/Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/lib/mkspecs/common/unix.conf \
@@ -281,11 +285,13 @@ DIST          = /Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-
 		/Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/lib/mkspecs/features/lex.prf \
 		../../../../Prototipo-gps.pro ../../camera.h \
 		../../chunk.h \
+		../../mainwindow.h \
 		../../myglwidget.h \
 		../../noiseutils.h \
 		../../terrainmanager.h ../../camera.cpp \
 		../../chunk.cpp \
 		../../main.cpp \
+		../../mainwindow.cpp \
 		../../myglwidget.cpp \
 		../../noiseutils.cpp \
 		../../terrainmanager.cpp
@@ -746,8 +752,8 @@ distdir: FORCE
 	@test -d $(DISTDIR) || mkdir -p $(DISTDIR)
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
 	$(COPY_FILE) --parents ../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/lib/mkspecs/features/data/dummy.cpp $(DISTDIR)/
-	$(COPY_FILE) --parents ../../camera.h ../../chunk.h ../../myglwidget.h ../../noiseutils.h ../../terrainmanager.h $(DISTDIR)/
-	$(COPY_FILE) --parents ../../camera.cpp ../../chunk.cpp ../../main.cpp ../../myglwidget.cpp ../../noiseutils.cpp ../../terrainmanager.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents ../../camera.h ../../chunk.h ../../mainwindow.h ../../myglwidget.h ../../noiseutils.h ../../terrainmanager.h $(DISTDIR)/
+	$(COPY_FILE) --parents ../../camera.cpp ../../chunk.cpp ../../main.cpp ../../mainwindow.cpp ../../myglwidget.cpp ../../noiseutils.cpp ../../terrainmanager.cpp $(DISTDIR)/
 	$(COPY_FILE) --parents ../../myglwidget.ui $(DISTDIR)/
 
 
@@ -780,9 +786,16 @@ compiler_moc_predefs_clean:
 moc_predefs.h: ../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/lib/mkspecs/features/data/dummy.cpp
 	aarch64-tdx-linux-g++ -mcpu=cortex-a53 -march=armv8-a+crc -mbranch-protection=standard -fstack-protector-strong -O2 -D_FORTIFY_SOURCE=2 -Wformat -Wformat-security -Werror=format-security -pipe --sysroot=/home/wagner/Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux -g -std=gnu++1z -Wall -Wextra -dM -E -o moc_predefs.h ../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/lib/mkspecs/features/data/dummy.cpp
 
-compiler_moc_header_make_all: moc_myglwidget.cpp
+compiler_moc_header_make_all: moc_mainwindow.cpp moc_myglwidget.cpp
 compiler_moc_header_clean:
-	-$(DEL_FILE) moc_myglwidget.cpp
+	-$(DEL_FILE) moc_mainwindow.cpp moc_myglwidget.cpp
+moc_mainwindow.cpp: ../../mainwindow.h \
+		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtWidgets/QWidget \
+		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtWidgets/qwidget.h \
+		moc_predefs.h \
+		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/x86_64-tdxsdk-linux/usr/bin/moc
+	/home/wagner/Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/x86_64-tdxsdk-linux/usr/bin/moc $(DEFINES) --include /home/wagner/ExemplosQt/Prototipo-gps/build/Toradex_IMX8MP-Debug/moc_predefs.h -I/home/wagner/Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/lib/mkspecs/linux-oe-g++ -I/home/wagner/ExemplosQt/Prototipo-gps -I/home/wagner/Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtOpenGL -I/home/wagner/Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtWidgets -I/home/wagner/Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtGui -I/home/wagner/Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtCore -I. -I/home/wagner/Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/c++/11.5.0 -I/home/wagner/Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/c++/11.5.0/aarch64-tdx-linux -I/home/wagner/Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/c++/11.5.0/backward -I/home/wagner/Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/x86_64-tdxsdk-linux/usr/lib/aarch64-tdx-linux/gcc/aarch64-tdx-linux/11.5.0/include -I/home/wagner/Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/lib/aarch64-tdx-linux/11.5.0/include -I/home/wagner/Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/x86_64-tdxsdk-linux/usr/lib/aarch64-tdx-linux/gcc/aarch64-tdx-linux/11.5.0/include-fixed -I/home/wagner/Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include ../../mainwindow.h -o moc_mainwindow.cpp
+
 moc_myglwidget.cpp: ../../myglwidget.h \
 		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtWidgets/QOpenGLWidget \
 		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtWidgets/qopenglwidget.h \
@@ -807,6 +820,8 @@ moc_myglwidget.cpp: ../../myglwidget.h \
 		../../chunk.h \
 		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtGui/QKeyEvent \
 		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtGui/qevent.h \
+		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtCore/QElapsedTimer \
+		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtCore/qelapsedtimer.h \
 		moc_predefs.h \
 		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/x86_64-tdxsdk-linux/usr/bin/moc
 	/home/wagner/Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/x86_64-tdxsdk-linux/usr/bin/moc $(DEFINES) --include /home/wagner/ExemplosQt/Prototipo-gps/build/Toradex_IMX8MP-Debug/moc_predefs.h -I/home/wagner/Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/lib/mkspecs/linux-oe-g++ -I/home/wagner/ExemplosQt/Prototipo-gps -I/home/wagner/Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtOpenGL -I/home/wagner/Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtWidgets -I/home/wagner/Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtGui -I/home/wagner/Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtCore -I. -I/home/wagner/Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/c++/11.5.0 -I/home/wagner/Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/c++/11.5.0/aarch64-tdx-linux -I/home/wagner/Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/c++/11.5.0/backward -I/home/wagner/Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/x86_64-tdxsdk-linux/usr/lib/aarch64-tdx-linux/gcc/aarch64-tdx-linux/11.5.0/include -I/home/wagner/Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/lib/aarch64-tdx-linux/11.5.0/include -I/home/wagner/Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/x86_64-tdxsdk-linux/usr/lib/aarch64-tdx-linux/gcc/aarch64-tdx-linux/11.5.0/include-fixed -I/home/wagner/Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include ../../myglwidget.h -o moc_myglwidget.cpp
@@ -867,7 +882,21 @@ chunk.o: ../../chunk.cpp ../../chunk.h \
 		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtCore/qdebug.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o chunk.o ../../chunk.cpp
 
-main.o: ../../main.cpp ../../myglwidget.h \
+main.o: ../../main.cpp ../../mainwindow.h \
+		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtWidgets/QWidget \
+		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtWidgets/qwidget.h \
+		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtGui/QSurfaceFormat \
+		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtGui/qsurfaceformat.h \
+		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtWidgets/QApplication \
+		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtWidgets/qapplication.h \
+		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtCore/QDebug \
+		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtCore/qdebug.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o main.o ../../main.cpp
+
+mainwindow.o: ../../mainwindow.cpp ../../mainwindow.h \
+		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtWidgets/QWidget \
+		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtWidgets/qwidget.h \
+		../../myglwidget.h \
 		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtWidgets/QOpenGLWidget \
 		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtWidgets/qopenglwidget.h \
 		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtGui/QOpenGLFunctions \
@@ -891,11 +920,15 @@ main.o: ../../main.cpp ../../myglwidget.h \
 		../../chunk.h \
 		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtGui/QKeyEvent \
 		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtGui/qevent.h \
-		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtGui/QSurfaceFormat \
-		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtGui/qsurfaceformat.h \
-		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtWidgets/QApplication \
-		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtWidgets/qapplication.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o main.o ../../main.cpp
+		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtCore/QElapsedTimer \
+		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtCore/qelapsedtimer.h \
+		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtWidgets/QLabel \
+		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtWidgets/qlabel.h \
+		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtWidgets/QGridLayout \
+		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtWidgets/qgridlayout.h \
+		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtGui/QFont \
+		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtGui/qfont.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o mainwindow.o ../../mainwindow.cpp
 
 myglwidget.o: ../../myglwidget.cpp ../../myglwidget.h \
 		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtWidgets/QOpenGLWidget \
@@ -921,6 +954,8 @@ myglwidget.o: ../../myglwidget.cpp ../../myglwidget.h \
 		../../chunk.h \
 		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtGui/QKeyEvent \
 		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtGui/qevent.h \
+		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtCore/QElapsedTimer \
+		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtCore/qelapsedtimer.h \
 		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtGui/QOpenGLContext \
 		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtGui/qopenglcontext.h \
 		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtCore/QDebug \
@@ -929,14 +964,22 @@ myglwidget.o: ../../myglwidget.cpp ../../myglwidget.h \
 		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtCore/QtGlobal \
 		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtCore/qglobal.h \
 		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtCore/QtMath \
-		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtCore/qmath.h
+		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtCore/qmath.h \
+		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtCore/QFile \
+		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtCore/qfile.h \
+		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtCore/QTextStream \
+		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtCore/qtextstream.h \
+		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtCore/QTime \
+		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtCore/qdatetime.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o myglwidget.o ../../myglwidget.cpp
 
 noiseutils.o: ../../noiseutils.cpp ../../noiseutils.h \
 		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtCore/QtGlobal \
 		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtCore/qglobal.h \
 		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtCore/QtMath \
-		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtCore/qmath.h
+		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtCore/qmath.h \
+		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtGui/QVector3D \
+		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtGui/qvector3d.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o noiseutils.o ../../noiseutils.cpp
 
 terrainmanager.o: ../../terrainmanager.cpp ../../terrainmanager.h \
@@ -962,6 +1005,9 @@ terrainmanager.o: ../../terrainmanager.cpp ../../terrainmanager.h \
 		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtCore/QDebug \
 		../../../../Treinamento-LE/Toolchain/tdx-xwayland/6.9.0/sysroots/cortexa53-tdx-linux/usr/include/QtCore/qdebug.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o terrainmanager.o ../../terrainmanager.cpp
+
+moc_mainwindow.o: moc_mainwindow.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_mainwindow.o moc_mainwindow.cpp
 
 moc_myglwidget.o: moc_myglwidget.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_myglwidget.o moc_myglwidget.cpp

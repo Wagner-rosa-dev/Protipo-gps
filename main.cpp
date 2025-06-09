@@ -1,6 +1,7 @@
-#include "myglwidget.h"
+#include "mainwindow.h"
 #include <QSurfaceFormat>
 #include <QApplication>
+#include <QDebug>
 
 int main(int argc, char *argv[])
 {
@@ -22,8 +23,7 @@ int main(int argc, char *argv[])
         qWarning() << "Tipo de renderização NÂO é OpenGLE. Verifique a Configurção";
     }
 
-    MyGLWidget w;
-    w.resize(800, 600);
+    MainWindow w;
     w.show();
 
     return a.exec();

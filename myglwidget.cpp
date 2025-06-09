@@ -4,7 +4,10 @@
 #include <QOpenGLShaderProgram>
 #include "noiseutils.h"// Incluído para QOpenGLShaderProgram
 #include <QKeyEvent>
-
+#include <QFile>
+#include <QTextStream>
+#include <QTime>
+#include <QElapsedTimer>
 
 
 
@@ -125,6 +128,7 @@ MyGLWidget::MyGLWidget(QWidget *parent)
     : QOpenGLWidget(parent), m_extraFunction(nullptr) {
     connect(&m_timer, &QTimer::timeout, this, &MyGLWidget::gameTick);
     m_timer.start(16); // Aproximadamente 60 FPS
+    setFocusPolicy(Qt::StrongFocus);
 }
 
 MyGLWidget::~MyGLWidget() {
@@ -177,6 +181,10 @@ void MyGLWidget::initializeGL() {
     m_tractorPosition = QVector3D(16.0f, 0.0f, 16.0f);
     m_tractorRotation = 0.0f;
     m_tractorPosition.setY(NoiseUtils::getHeight(m_tractorPosition.x(), m_tractorPosition.z()));
+
+    m_frameCount = 0;
+    m_fpsTime.start();
+    m_tempReadTimer.start();
 
 }
 
@@ -285,6 +293,17 @@ void MyGLWidget::paintGL() {
 
     }
 
+    //Logica de calculo de fps
+    m_frameCount++;
+    if (m_fpsTime.elapsed() >= 1000) {
+        float fps = m_frameCount / (m_fpsTime.elapsed() / 1000.0f);
+
+        emit fpsUpdated(qRound(fps));
+
+        m_frameCount = 0;
+        m_fpsTime.restart();
+    }
+
 
     GLenum err;
     while((err = glGetError()) != GL_NO_ERROR) {
@@ -297,11 +316,49 @@ void MyGLWidget::resizeGL(int w, int h) {
     m_camera.setPerspective(35.0f, static_cast<float>(w) / static_cast<float>(h > 0 ? h : 1), 0.1f, 1000.0f);
 }
 
-// Slot update chamado pelo m_timer
 void MyGLWidget::gameTick() {
+
+
+    if (m_tempReadTimer.elapsed() >= 2000) { // a cada 2 segundos
+
+        qInfo() << "Timer de 2s atingido. tentando ler a temperatura..";
+
+    #ifdef Q_OS_LINUX
+        QString tempFilePath = "/sys/class/thermal/thermal_zone0/temp";
+        QFile tempFile(tempFilePath);
+
+        if (tempFile.open(QIODevice::ReadOnly)) {
+            QTextStream in(&tempFile);
+            QString line = in.readLine();
+
+            //Verificar se a linha nao esta vazia
+            if (line.trimmed().isEmpty()) {
+                qWarning() << "Arquivo de temperatura esta vazio";
+            } else {
+            bool ok;
+            float temperature = line.toFloat(&ok) / 1000.0;
+            if (ok) {
+                qInfo() << "Sucesso: leitura da temperatura concluida";
+                emit tempUpdated(temperature); //Emite o sinal com a temperatura
+            } else {
+                qWarning() << "Erro: nao foi possivel converter o conteudo'" << line << "'para numero";
+            }
+        }
+            tempFile.close();
+        } else {
+            //se caso o if falou e n foi possivel abrir o arquivo
+            qWarning() << "erro: nao foi possivel abrir o arquivo de temperatura em:" << tempFilePath;
+            qWarning() << "Verifique se o caminho esta correto para a sua placa";
+        }
+    #endif
+        m_tempReadTimer.restart();
+    }
     // Lógica de atualização de estado (ex: input do teclado/mouse para câmera)
     // Por enquanto, apenas agenda um repaint.
-    QOpenGLWidget::update(); // Reagenda paintGL()
+
+
+
+ update(); // Reagenda paintGL()
 }
 
 void MyGLWidget::setupTractorGL() {

@@ -12,6 +12,7 @@ SOURCES += \
     camera.cpp \
     chunk.cpp \
     main.cpp \
+    mainwindow.cpp \
     myglwidget.cpp \
     noiseutils.cpp \
     terrainmanager.cpp
@@ -19,6 +20,7 @@ SOURCES += \
 HEADERS += \
     camera.h \
     chunk.h \
+    mainwindow.h \
     myglwidget.h \
     noiseutils.h \
     terrainmanager.h
